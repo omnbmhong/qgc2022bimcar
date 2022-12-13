@@ -6,7 +6,9 @@
  * COPYING.md in the root of the source code directory.
  *
  ****************************************************************************/
-
+#include <QQmlApplicationEngine>
+#include <QQmlContext>
+#include <QQuickView>
 #include <QtGlobal>
 #include <QApplication>
 #include <QIcon>
@@ -18,9 +20,13 @@
 #include <QtPlugin>
 #include <QStringListModel>
 
+
 #include "QGC.h"
 #include "QGCApplication.h"
 #include "AppMessages.h"
+
+
+
 
 #ifndef NO_SERIAL_LINK
     #include "SerialLink.h"
@@ -237,6 +243,9 @@ void sigHandler(int s)
 
 int main(int argc, char *argv[])
 {
+
+
+
 #ifndef __mobile__
     // We make the runguard key different for custom and non custom
     // builds, so they can be executed together in the same device.
@@ -389,6 +398,9 @@ int main(int argc, char *argv[])
     getQGCMapEngine()->init();
 
     int exitCode = 0;
+
+
+
 
 #ifdef UNITTEST_BUILD
     if (runUnitTests) {

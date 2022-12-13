@@ -278,4 +278,11 @@ Item {
         FlyViewPreFlightChecklistPopup {
         }
     }
+    //update20221105  add the UI for TestFact data display of myVoltage
+//    VoltageTest {
+//        anchors.top:                parent.top
+//        anchors.topMargin:          50
+//        anchors.horizontalCenter:   parent.horizontalCenter
+//    }
+
 }

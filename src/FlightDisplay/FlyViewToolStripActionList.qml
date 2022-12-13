@@ -23,6 +23,22 @@ ToolStripActionList {
             iconSource:     "/qmlimages/Plan.svg"
             onTriggered:    mainWindow.showPlanView()
         },
+        ToolStripAction {
+                               text:       qsTr("暂停")
+                               iconSource: "/res/Pause.svg"
+
+                               onTriggered: {
+
+                               }
+                           },
+        ToolStripAction {
+                               text:       qsTr("行驶")
+                               iconSource: "/res/wind-rose-arrow.svg"
+
+                               onTriggered: {
+
+                               }
+                           },
         PreFlightCheckListShowAction { onTriggered: displayPreFlightChecklist() },
         GuidedActionTakeoff { },
         GuidedActionLand { },

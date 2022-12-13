@@ -136,6 +136,20 @@
     "shortDesc": "Throttle %",
     "type":             "uint16",
     "units":            "%"
+},
+{
+    "name":             "myVoltage",
+    "shortDesc":        "Current voltage",
+    "type":             "double",
+    "decimalPlaces":    7,
+    "units":            "v"
+},
+{
+    "name":             "myLongitude",
+    "shortDesc":        "Current Longitude",
+    "type":             "double",
+    "decimalPlaces":    7,
+    "units":            "dg"
 }
 ]
 }

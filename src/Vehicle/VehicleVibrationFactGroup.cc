@@ -55,5 +55,7 @@ void VehicleVibrationFactGroup::handleMessage(Vehicle* /* vehicle */, mavlink_me
     clipCount2()->setRawValue(vibration.clipping_1);
     clipCount3()->setRawValue(vibration.clipping_2);
     _setTelemetryAvailable(true);
+
+
 }
 

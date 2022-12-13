@@ -154,7 +154,7 @@ Rectangle {
 
                         QGCLabel {
                             Layout.alignment:   Qt.AlignBaseline
-                            text:               qsTr("Altitude")
+                            text:               qsTr("Altitude LEO")
                             font.pointSize:     ScreenTools.smallFontPointSize
                         }
                         QGCLabel {

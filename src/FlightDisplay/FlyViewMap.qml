@@ -259,8 +259,60 @@ FlightMap {
             coordinate:     object.coordinate
             map:            _root
             size:           pipMode ? ScreenTools.defaultFontPixelHeight : ScreenTools.defaultFontPixelHeight * 3
-            z:              QGroundControl.zOrderVehicles
+            //z:              QGroundControl.zOrderVehicles
+            sourceItem: Rectangle {
+            id:                         cchVehicleStatusView;
+            anchors.bottom:             vehicleIcon.top;
+            anchors.bottomMargin:  4
+            anchors.horizontalCenter:   vehicleIcon.horizontalCenter;
+            color:                      "#DDDDFF"
+            radius:                     10
+            width:                      buttonColumn.implicitWidth * 1.1
+            height:                     buttonColumn.implicitHeight * 1.1
+            opacity :                   0.6;
+            border.color:               "black"
+            border.width:               2
+
+            Column {
+                id:                 buttonColumn
+                width:              statusNameRepeater.implicitWidth
+                height:             statusNameRepeater.implicitHeight
+                anchors.top:        parent.top
+                anchors.topMargin:  6
+                anchors.left:       parent.left
+                anchors.leftMargin: 6
+                spacing:            ScreenTools.defaultFontPixelHeight / 2
+
+                Repeater {
+                    id:     statusNameRepeater
+                    model:  9
+                    property var statusNames:  [ "电池剩余百分比: ", "电池电压: ", qsTr("飞行模式："), qsTr("地速: "), qsTr("空速: "), qsTr("爬升速度: "), qsTr("相对高度: "), qsTr("飞行距离: "),"到home点距离: "]
+                    property var statusValues: [batteryPercentRemain, batteryVoltage, flightMode, groundSpeed.toFixed(2), airSpeed.toFixed(2), climbRate.toFixed(2), altitudeRelative.toFixed(2), flightDistance.toFixed(2), distanceToHome.toFixed(2)]
+                    property var statusUnits: ["%", "v", "", "(m/s)", "(m/s)", "(m/s)", "(m)", "(m)", "(m)"]
+
+                    Row{
+                        id: _row
+                        QGCLabel {
+                            color:                            "#424200"
+                            horizontalAlignment:              Text.AlignHCenter
+                            font.pointSize:                   ScreenTools.mediumFontPointSize * 1.0
+                            text:                             statusNameRepeater.statusNames[index]
+                            font.bold:                        true
+                        }
+                        QGCLabel {
+                            color:                            "#336666"
+                            horizontalAlignment:              Text.AlignHCenter
+                            font.pointSize:                   ScreenTools.mediumFontPointSize *1.0
+                            text:                             statusNameRepeater.statusValues[index] + statusNameRepeater.statusUnits[index]
+                            font.bold:                        true
+                        }
+                    }
+                }
+            }
+          }
+
         }
+        z:              QGroundControl.zOrderTopMost
     }
     // Add distance sensor view
     MapItemView{

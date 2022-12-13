@@ -95,6 +95,9 @@ const char* Vehicle::_headingToHomeFactName =       "headingToHome";
 const char* Vehicle::_distanceToGCSFactName =       "distanceToGCS";
 const char* Vehicle::_hobbsFactName =               "hobbs";
 const char* Vehicle::_throttlePctFactName =         "throttlePct";
+//update20221105
+const char* Vehicle::_myVoltageFactName =            "myVoltage";  //for Latitude
+const char* Vehicle::_myLonFactName =            "myLongitude";  //for Longitude
 
 const char* Vehicle::_gpsFactGroupName =                "gps";
 const char* Vehicle::_gps2FactGroupName =               "gps2";
@@ -108,6 +111,7 @@ const char* Vehicle::_localPositionFactGroupName =      "localPosition";
 const char* Vehicle::_localPositionSetpointFactGroupName ="localPositionSetpoint";
 const char* Vehicle::_escStatusFactGroupName =          "escStatus";
 const char* Vehicle::_estimatorStatusFactGroupName =    "estimatorStatus";
+const char* Vehicle::_testInfoFactGroupName =          "testInfo";
 const char* Vehicle::_terrainFactGroupName =            "terrain";
 const char* Vehicle::_hygrometerFactGroupName =         "hygrometer";
 
@@ -156,9 +160,13 @@ Vehicle::Vehicle(LinkInterface*             link,
     , _distanceToGCSFact            (0, _distanceToGCSFactName,     FactMetaData::valueTypeDouble)
     , _hobbsFact                    (0, _hobbsFactName,             FactMetaData::valueTypeString)
     , _throttlePctFact              (0, _throttlePctFactName,       FactMetaData::valueTypeUint16)
+    //update20221105
+    , _myVoltageFact                (0, _myVoltageFactName,         FactMetaData::valueTypeDouble)
+     , _myLonFact                   (0, _myLonFactName,             FactMetaData::valueTypeDouble)
     , _gpsFactGroup                 (this)
     , _gps2FactGroup                (this)
     , _windFactGroup                (this)
+    , _testInfoFactGroup            (this)
     , _vibrationFactGroup           (this)
     , _temperatureFactGroup         (this)
     , _clockFactGroup               (this)
@@ -310,9 +318,13 @@ Vehicle::Vehicle(MAV_AUTOPILOT              firmwareType,
     , _distanceToGCSFact                (0, _distanceToGCSFactName,     FactMetaData::valueTypeDouble)
     , _hobbsFact                        (0, _hobbsFactName,             FactMetaData::valueTypeString)
     , _throttlePctFact                  (0, _throttlePctFactName,       FactMetaData::valueTypeUint16)
+    //update20221105
+    , _myVoltageFact                    (0, _myVoltageFactName,         FactMetaData::valueTypeDouble)
+    , _myLonFact                        (0, _myLonFactName,             FactMetaData::valueTypeDouble)
     , _gpsFactGroup                     (this)
     , _gps2FactGroup                    (this)
     , _windFactGroup                    (this)
+    , _testInfoFactGroup                (this)
     , _vibrationFactGroup               (this)
     , _clockFactGroup                   (this)
     , _distanceSensorFactGroup          (this)
@@ -431,6 +443,9 @@ void Vehicle::_commonInit()
     _addFact(&_headingToHomeFact,       _headingToHomeFactName);
     _addFact(&_distanceToGCSFact,       _distanceToGCSFactName);
     _addFact(&_throttlePctFact,         _throttlePctFactName);
+    //update20221105
+    _addFact(&_myVoltageFact,            _myVoltageFactName);
+    _addFact(&_myLonFact,            _myLonFactName);
 
     _hobbsFact.setRawValue(QVariant(QString("0000:00:00")));
     _addFact(&_hobbsFact,               _hobbsFactName);
@@ -449,6 +464,8 @@ void Vehicle::_commonInit()
     _addFactGroup(&_estimatorStatusFactGroup,   _estimatorStatusFactGroupName);
     _addFactGroup(&_hygrometerFactGroup,        _hygrometerFactGroupName);
     _addFactGroup(&_terrainFactGroup,           _terrainFactGroupName);
+    _addFactGroup(&_testInfoFactGroup,          _testInfoFactGroupName);
+
 
     // Add firmware-specific fact groups, if provided
     QMap<QString, FactGroup*>* fwFactGroups = _firmwarePlugin->factGroups();
@@ -1111,6 +1128,13 @@ void Vehicle::_handleGpsRawInt(mavlink_message_t& message)
             }
         }
     }
+    //update20221118 函数中获取GPS
+    double voltageLat = static_cast<double>(gpsRawInt.lat)/(double)1E7;
+    double voltageLon = static_cast<double>(gpsRawInt.lon)/(double)1E7;
+
+
+    _myVoltageFact.setRawValue(voltageLat);
+    _myLonFact.setRawValue(voltageLon);
 }
 
 void Vehicle::_handleGlobalPositionInt(mavlink_message_t& message)
@@ -1409,6 +1433,9 @@ void Vehicle::_handleSysStatus(mavlink_message_t& message)
         _onboardControlSensorsUnhealthy = newSensorsUnhealthy;
         emit sensorsUnhealthyBitsChanged(_onboardControlSensorsUnhealthy);
     }
+    //update20221105  函数中获取电压
+    //double voltage = static_cast<double>(sysStatus.voltage_battery)/1000;
+    //_myVoltageFact.setRawValue(voltage);
 }
 
 void Vehicle::_handleBatteryStatus(mavlink_message_t& message)

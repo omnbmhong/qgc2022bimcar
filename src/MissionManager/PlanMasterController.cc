@@ -97,13 +97,13 @@ void PlanMasterController::start(void)
 
     _updatePlanCreatorsList();
 
-#if defined(QGC_AIRMAP_ENABLED)
+//#if defined(QGC_AIRMAP_ENABLED)
     //-- This assumes there is one single instance of PlanMasterController in edit mode.
-    if(!_flyView) {
+    //if(!_flyView) {
         // Wait for signal confirming AirMap client connection before starting flight planning
-        connect(qgcApp()->toolbox()->airspaceManager(), &AirspaceManager::connectStatusChanged, this, &PlanMasterController::_startFlightPlanning);
-    }
-#endif
+        //connect(qgcApp()->toolbox()->airspaceManager(), &AirspaceManager::connectStatusChanged, this, &PlanMasterController::_startFlightPlanning);
+    //}
+//#endif
 }
 
 void PlanMasterController::startStaticActiveVehicle(Vehicle* vehicle, bool deleteWhenSendCompleted)

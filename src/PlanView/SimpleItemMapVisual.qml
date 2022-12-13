@@ -35,6 +35,49 @@ Item {
 
     signal clicked(int sequenceNumber)
 
+
+
+
+    //定义变量
+
+    property var    _circle
+    property bool   _circleShowing:   false
+
+            function hideCircle() {
+                if (_circleShowing) {
+                    _circle.destroy()
+                    _circleShowing = false
+                }
+            }
+
+
+    //显示半径圈
+            function showCircle() {
+                if (!_circleShowing) {
+                    //_circle = circleComponent.createObject(map)
+                    console.log('inMapVisual map=:',map)
+                    //map.addMapItem(_circle)
+                    //_circleShowing = true
+                }
+            }
+
+//Updated 20221209 LEO
+                Component {
+                       id: circleComponent
+
+                       MapCircle {
+                           color:          Qt.rgba(0,0,0,0)
+                           border.color:   "yellow"
+                           border.width:   6
+                           //center:         _missionController.splitSegment.coordinate1
+                           center:         _missionItem.coordinate
+                           radius:         200
+                           visible:        true
+
+                       }
+
+                   }
+
     function hideItemVisuals() {
         if (_itemVisualShowing) {
             _itemVisual.destroy()
@@ -50,6 +93,7 @@ Item {
             _loiterVisual = loiterComponent.createObject(map)
             map.addMapItem(_loiterVisual)
             _itemVisualShowing = true
+
         }
     }
 
@@ -70,6 +114,7 @@ Item {
     function updateDragArea() {
         if (_missionItem.isCurrentItem && map.planView && _missionItem.specifiesCoordinate) {
             showDragArea()
+
         } else {
             hideDragArea()
         }
@@ -78,11 +123,13 @@ Item {
     Component.onCompleted: {
         showItemVisuals()
         updateDragArea()
+       showCircle()
     }
 
     Component.onDestruction: {
         hideDragArea()
         hideItemVisuals()
+        //hideCircle()
     }
 
 
@@ -179,4 +226,5 @@ Item {
             }
         }
     }
+
 }

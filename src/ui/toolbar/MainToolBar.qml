@@ -41,7 +41,7 @@ Rectangle {
         anchors.right:  parent.right
         anchors.bottom: parent.bottom
         height:         1
-        color:          "black"
+        color:          "blue"
         visible:        qgcPal.globalTheme === QGCPalette.Light
     }
 
@@ -67,7 +67,8 @@ Rectangle {
         QGCToolBarButton {
             id:                     currentButton
             Layout.preferredHeight: viewButtonRow.height
-            icon.source:            "/res/QGCLogoFull"
+           // icon.source:            "/res/QGCLogoArrow"
+           icon.source:            "/res/mmteklogo"
             logo:                   true
             onClicked:              mainWindow.showToolSelectDialog()
         }

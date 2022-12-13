@@ -26,6 +26,7 @@ message(Qt version $$[QT_VERSION])
 }
 
 include(QGCCommon.pri)
+include(user_config.pri)
 
 TARGET   = QGroundControl
 TEMPLATE = app
@@ -565,6 +566,7 @@ DebugBuild { PX4FirmwarePlugin { PX4FirmwarePluginFactory { APMFirmwarePlugin { 
 # Main QGC Headers and Source files
 
 HEADERS += \
+    src/Vehicle/TestInfoFactGroup.h \
     src/ADSB/ADSBVehicle.h \
     src/ADSB/ADSBVehicleManager.h \
     src/AnalyzeView/LogDownloadController.h \
@@ -982,6 +984,7 @@ SOURCES += \
     src/Vehicle/VehicleSetpointFactGroup.cc \
     src/Vehicle/VehicleTemperatureFactGroup.cc \
     src/Vehicle/VehicleVibrationFactGroup.cc \
+    src/Vehicle/TestInfoFactGroup.cc \
     src/Vehicle/VehicleHygrometerFactGroup.cc \
     src/Vehicle/VehicleWindFactGroup.cc \
     src/VehicleSetup/JoystickConfigController.cc \

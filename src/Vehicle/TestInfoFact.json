@@ -1,0 +1,43 @@
+{
+    "version":      1,
+    "fileType":  "FactMetaData",
+    "QGC.MetaData.Facts":
+[
+{
+    "name":             "test1",
+    "shortDesc":       "MM测试1",
+    "type":             "double",
+    "decimalPlaces":    1,
+    "units":            "赫兹"
+},
+{
+    "name":             "test2",
+    "shortDesc":        "测试2",
+    "type":             "double",
+    "decimalPlaces":    1,
+    "units":            "v"
+},
+{
+    "name":             "test3",
+    "shortDesc":  "测试3",
+    "type":             "double",
+    "decimalPlaces":    1,
+    "units":            "v"
+},
+{
+    "name":             "test4",
+    "shortDesc":  "测试4",
+    "type":             "double",
+    "decimalPlaces":    1,
+    "units":            "v"
+},
+{
+    "name":             "myTest5",
+    "shortDesc":  "Voltage",
+    "type":             "double",
+    "decimalPlaces":    2,
+    "units":            "度"
+}
+]
+}
+

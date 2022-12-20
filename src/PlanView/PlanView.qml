@@ -35,9 +35,10 @@ Item {
     property real myAngularMaximum: 5.0 // Unit degree Planning Curve  Path
     property real myDistanceMaximum: 1.0 //Unit Meter(M) Planning Curve Path
     property real myAngularSpan:60.0 //  Unit Degree in Clock-wise direction
-    property real myAngularStep:5.0// Steps to increase in Angular Planning
-    property real myDistanceStep:5.0//
+    property real myAngularStep:2.0// Steps to increase in Angular Planning
+    property real myDistanceStep:100.0//Unit in CM
     property int myReverseCurve: 0// to decide if we revert the curve path
+    property var myPosition: ({}) // use this share location for Visual Effect of Arc planning Preview
 
     property bool planControlColapsed: false
 
@@ -70,41 +71,25 @@ Item {
     readonly property int       _layerRallyPoints:          3
     readonly property string    _armedVehicleUploadPrompt:  qsTr("Vehicle is currently armed. Do you want to upload the mission to the vehicle?")
 
-    //定义变量    Updated 20221209 LEO
-    property var map        ///< Map control to place item in
-    property var vehicle    ///< Vehicle associated with this item
-    property bool interactive: true
 
-    property var    _circle
-    property bool   _circleShowing:   false
-
-//显示半径圈
-    function showCircle() {
-        if (!_circleShowing) {
-            //_circle = circleComponent2.createObject(map)
-            console.log('inPlanView map=:',map)
-            //map.addMapItem(_circle)
-
-            //_circleShowing = true
-        }
-    }
    Component {
                id: circleComponent2
                        MapCircle {
                            color:          Qt.rgba(0,0,0,0)
                            border.color:   "yellow"
                            border.width:   6
-                           //center:         _missionController.splitSegment.coordinate1
-                           center:         QtPositioning.coordinate()
+
+                           center:         myPosition
+                           //center:         QtPositioning.coordinate()
                            radius:         200
                            visible:        true
                        }
                    }
 
-   Component.onCompleted: {
+//   Component.onCompleted: {
 
-       showCircle()
-   }
+//       showCircle()
+//   }
 
     function mapCenter() {
         var coordinate = editorMap.center
@@ -939,7 +924,7 @@ Item {
                         map:            editorMap
                         masterController:  _planMasterController
                         missionItem:    object
-                        width:          parent.width
+                        width:          180//parent.width
                         readOnly:       false
                         onClicked:      _missionController.setCurrentPlanViewSeqNum(object.sequenceNumber, false)
                         onRemove: {
@@ -1058,63 +1043,38 @@ Item {
         }
     }
 
-    //定义变量    Updated 20221209
-
-//    property var    _circle
-//    property bool   _circleShowing:   false
-
 
 //Updated 20221209 LEO
-//    function hideCircle() {
-//        if (_circleShowing) {
-//            _circle.destroy()
-//            _circleShowing = false
-//        }
-//    }
 
 
-
-//    function showCircle() {
-//        if (!_circleShowing) {
-//            _circle = circleComponent.createObject(map)
-//            map.addMapItem(_circle)
-//            _circleShowing = true
-//        }
-//    }
-
-
-
-//   Component {
-//               id: circleComponent
-
-//                       MapCircle {
-//                           color:          Qt.rgba(0,0,0,0)
-//                           border.color:   "yellow"
-//                           border.width:   6
-//                           //center:         _missionController.splitSegment.coordinate1
-//                           center:         QtPositioning.coordinate()
-//                           radius:         200
-//                           visible:        true
-//                       }
-
-
-//                   }
-
-//   Component.onCompleted: {
-
-//       showCircle()
-//   }
-//   Loader { sourceComponent: circleComponent2 }
     Component {
 
         id: insertCurvePromptDialog
         QGCViewMessage {
             message: qsTr("Are you sure you want to create a new curve plan between these 2 ponits? ")
+            //定义变量    Updated 20221209 LEO
+            property var    _circle
+            property bool   _circleShowing:   false
+           //显示半径圈
+            function showCircle() {
+                    _circle = circleComponent2.createObject(editorMap)
+                    console.log('inPlanView New Test map=:',editorMap,'myCor=',myPosition)
+                    _circle.center=myPosition
+                    editorMap.addMapItem(_circle)
+                   _circleShowing = true
+            }
+            function hideCircle() {
+                if (_circleShowing) {
+                    _circle.destroy()
+                    _circleShowing = false
+                }
+            }
+
             function generatePath(){
                   const start_Lat = parseFloat(_missionController.splitSegment.coordinate1.latitude);
                   const start_Lon = parseFloat(_missionController.splitSegment.coordinate1.longitude);
-                  const end_Lat = parseFloat(_missionController.splitSegment.coordinate2.latitude).toFixed(6);
-                  const end_Lon = parseFloat(_missionController.splitSegment.coordinate2.longitude).toFixed(6);
+                  const end_Lat = parseFloat(_missionController.splitSegment.coordinate2.latitude);
+                  const end_Lon = parseFloat(_missionController.splitSegment.coordinate2.longitude);
 
                 var coordinate = editorMap.center
                 const ratio_B= (1.0/111122.19769899000); // 1meter=? degree in B ,纬度 Latitude
@@ -1122,11 +1082,7 @@ Item {
                 var param_A=0.0;
                 var param_B=0.0;
                 var param_C=0.0;// Reverse the Curve purpose.
-                // Use new symmetry Arc Center C1 to draw the reverse arc
-                // straight line l:  Ax+By+C=0, M(x0,y0) --->>  Symmetry Point  M(x1,y1)
-                //param_A= end_Lat-start_Lat;
-                //param_B=start_Lon-end_Lon;
-                //param_C=(end_Lon-start_Lon)*start_Lat-(end_Lat-start_Lat)*start_Lon;
+
 
                 var distance =Math.sqrt(Math.pow(((end_Lat-start_Lat)/ratio_B),2)+Math.pow(((end_Lon-start_Lon)/ratio_L),2));
                 var realR= distance*0.5/Math.sin((myAngularSpan*0.5)*Math.PI/180.0);//Unit as in Meter.
@@ -1146,92 +1102,111 @@ Item {
 
 
                 if((end_Lon-start_Lon)>0) {          //directing -->> Right
-                    if((end_Lat-start_Lat)<0)  start_theta= keyAngle+Angle1; //directing --> Down.
-                    if((end_Lat-start_Lat)>=0)  start_theta= 180.0-keyAngle;//directing --> Up .
-                    end_theta=start_theta-Angle1;
-                    // to locate the Circle Center BL.
-                      shift_y= realR*Math.sin((start_theta)*Math.PI/180);  // 180> always be positive >0
-                      shift_x= realR*Math.cos((start_theta)*Math.PI/180);// 180> negative>90;  90> positive>0
-                      RevShift_y=realR*Math.cos((90.0-start_theta-Angle1)*Math.PI/180);
-                      RevShift_x=realR*Math.sin((90.0-start_theta-Angle1)*Math.PI/180);
-                    center_B= end_Lat-shift_y*ratio_B;// center   in B ,纬度 Latitude
-                    center_L= end_Lon-shift_x*ratio_L;//  Center  in L,经度 Longitude
-                    RevCenter_B= end_Lat+RevShift_y*ratio_B;//
-                    RevCenter_L= end_Lon+RevShift_x*ratio_L;//
-                    console.log('Radius,C1-X,Yshift=:',realR,shift_x,shift_y);
+                       if((end_Lat-start_Lat)<0)
+                            {start_theta= keyAngle+Angle1; //directing --> Down.
+                               end_theta=keyAngle;
+                           // to locate the Circle Center BL.
+                             shift_y= realR*Math.sin((keyAngle)*Math.PI/180);
+                             shift_x= realR*Math.cos((keyAngle)*Math.PI/180);
+                             RevShift_y=realR*Math.sin((keyAngle)*Math.PI/180);
+                             RevShift_x=realR*Math.cos((keyAngle)*Math.PI/180);
+                           center_B= start_Lat-shift_y*ratio_B;// center   in B ,纬度 Latitude
+                           center_L= start_Lon-shift_x*ratio_L;//  Center  in L,经度 Longitude
+                           RevCenter_B= start_Lat+RevShift_y*ratio_B;//
+                           RevCenter_L= start_Lon+RevShift_x*ratio_L;//
+                       }
+
+                       if((end_Lat-start_Lat)>=0)
+                            {start_theta= 180.0-keyAngle;//directing --> Up .
+                                end_theta=180.0-keyAngle-Angle1;
+                           // to locate the Circle Center BL.
+                             shift_y= realR*Math.sin((keyAngle)*Math.PI/180);
+                             shift_x= realR*Math.cos((keyAngle)*Math.PI/180);
+                             RevShift_y=realR*Math.sin((keyAngle)*Math.PI/180);
+                             RevShift_x=realR*Math.cos((keyAngle)*Math.PI/180);
+                           center_B= start_Lat-shift_y*ratio_B;// center   in B ,纬度 Latitude
+                           center_L= start_Lon-shift_x*ratio_L;//  Center  in L,经度 Longitude
+                           RevCenter_B= end_Lat+RevShift_y*ratio_B;//
+                           RevCenter_L= end_Lon-RevShift_x*ratio_L;//
+                       }
+
+
+
 
                 };
                 if((end_Lon-start_Lon)<=0) {  //directing -->> Left
-                     if((end_Lat-start_Lat)<0)  start_theta= 180.0-keyAngle-Angle1;//directing --> Down.
-                     if((end_Lat-start_Lat)>=0)  start_theta= keyAngle;//directing --> Up .
-                    keyAngle=start_theta;
-                    end_theta=start_theta+Angle1;
-                     shift_y= realR*Math.sin((start_theta)*Math.PI/180);  // 180> always be positive >0
-                     shift_x= realR*Math.cos((start_theta)*Math.PI/180);// 180> negative>90;  90> positive>0
-                     RevShift_y=realR*Math.cos((90.0-start_theta-Angle1)*Math.PI/180);
-                     RevShift_x=realR*Math.sin((90.0-start_theta-Angle1)*Math.PI/180);
-                    center_B= start_Lat-shift_y*ratio_B;//inputed data// center B
-                    center_L= start_Lon-shift_x*ratio_L;//inputed data  Center L
-                     RevCenter_B= start_Lat+RevShift_y*ratio_B;//
-                     RevCenter_L= start_Lon+RevShift_x*ratio_L;//
-                    console.log('Radius,C1-X,Yshift=:',realR,shift_x,shift_y);
+                     if((end_Lat-start_Lat)<0)//directing --> Down.
+                     {start_theta= 180.0-keyAngle-Angle1;
+                      end_theta=start_theta+Angle1;
+                         shift_y= realR*Math.sin((start_theta)*Math.PI/180);  // 180> always be positive >0
+                         shift_x= realR*Math.cos((start_theta)*Math.PI/180);// 180> negative>90;  90> positive>0
+                         RevShift_y=realR*Math.sin(keyAngle*Math.PI/180);
+                         RevShift_x=realR*Math.cos(keyAngle*Math.PI/180);
+                         center_B= start_Lat-shift_y*ratio_B;//inputed data// center B
+                         center_L= start_Lon-shift_x*ratio_L;//inputed data  Center L
+                         RevCenter_B= start_Lat+RevShift_y*ratio_B;//
+                         RevCenter_L= start_Lon-RevShift_x*ratio_L;//
+                     }
+                     if((end_Lat-start_Lat)>0)
+                     {start_theta= keyAngle;//directing --> Up .
+                        end_theta=start_theta+Angle1;
+                         shift_y= realR*Math.sin((start_theta)*Math.PI/180);  // 180> always be positive >0
+                         shift_x= realR*Math.cos((start_theta)*Math.PI/180);// 180> negative>90;  90> positive>0
+                         RevShift_y=realR*Math.sin(keyAngle*Math.PI/180);
+                         RevShift_x=realR*Math.cos(keyAngle*Math.PI/180);
+                         center_B= start_Lat-shift_y*ratio_B;//inputed data// center B
+                         center_L= start_Lon-shift_x*ratio_L;//inputed data  Center L
+                         RevCenter_B=end_Lat+RevShift_y*ratio_B;//
+                         RevCenter_L=end_Lon+RevShift_x*ratio_L;//
+                     }
 
                 };
                     var   center_H= 99.0;//圆心的 经纬度BLH坐标
 
-                    console.log('ReverseCenter=',RevCenter_B,RevCenter_L)
 //                        console.log('startTheta=',start_theta,'Radius=',realR,'EndTheta=',end_theta);
-//                        console.log('Cor-shiftX=',shift_x*ratio_L,'Cor-shiftY=',shift_y*ratio_B);
-//                        console.log('angle1,2,3=',Angle1,Angle2,Angle3);
-//                        console.log('Start Lat=',start_Lat,'Start Lon=',start_Lon);
-//                        console.log('End Lat=',end_Lat,'End Lon=',end_Lon);
-//                        console.log('CenterLat=',center_B,'CenterLon=',center_L);
-                //console.log('ParamA,B,C=',param_A,param_B,param_C);
-                //console.log('EquationTest=X1',cor_B[i]-2.0*param_A*(param_A*cor_B[i]+param_B*cor_L[i]+param_C)/(param_A*param_A+param_B*param_B););
-                //console.log('EquationTest=X2',param_A*end_Lon+param_B*end_Lat+param_C);
-
- //                               const start_x=realR*Math.cos((start_theta)*Math.PI/180.0);
  //                               const start_y=realR*Math.sin((start_theta)*Math.PI/180.0);//refer to center,  起始点的 x y z坐标and distance.in XY system.
                                 var cor_x=new Array(50).fill(0.0); var cor_B=new Array(50).fill(0.0);var rev_B=new Array(50).fill(0.0);
                                 var cor_y=new Array(50).fill(0.0); var cor_L=new Array(50).fill(0.0);var rev_L=new Array(50).fill(0.0);
  //                               var x_shift=0.0; var y_shift=0.0;
-                                var N1=Math.ceil(Math.abs((end_theta- start_theta))/myAngularStep);//set to be 5 degree as default in angle.
-                                var N2=Math.ceil(Math.abs((end_theta- start_theta))*Math.PI*2*realR/(360*myDistanceStep));//set to be 20cm
-                                var N=N1; //=Math.max(N1,N2);
-                                console.log('n1,n2=',N1,N2);
+                                var N1=Math.ceil(Math.abs((end_theta - start_theta))/myAngularStep);//set to be 5 degree as default in angle.
+                                var N2=Math.ceil(Math.abs((end_theta - start_theta))*Math.PI*200*realR/(360*myDistanceStep));//set to be 20cm
+                                var N=Math.max(N1,N2);
+                                console.log('N1,2=',N1,N2,'distance=',distance,'realR=',realR,'DistanceStep=',myDistanceStep);
                                 var points=N;
-                                const d_theta=(end_theta- start_theta)/N;
+                                const d_theta=Math.abs((end_theta- start_theta))/N;
 
                 // pinpoint the Center and Symmetry Center of cirle
                  var nextIndex= _missionController.currentPlanViewVIIndex;
-                coordinate.altitude = 6.180;
-//                coordinate.latitude = center_B;
-//                coordinate.longitude =center_L;
-//                 _missionController.insertSimpleMissionItem(coordinate, nextIndex, true /* makeCurrentItem */);
-//                coordinate.latitude = RevCenter_B;
-//                coordinate.longitude =RevCenter_L;
-//                 _missionController.insertSimpleMissionItem(coordinate, nextIndex, true /* makeCurrentItem */);
-
-
+                  coordinate.altitude = 6.180;
                                var anchorIndex = _missionController.currentPlanViewVIIndex-1;
                                 for(let i=points-1; i>0;i--) {
                                       nextIndex= _missionController.currentPlanViewVIIndex;
-                                      if((end_Lon-start_Lon)>0) {
-                                        cor_L[i]=start_Lon+ratio_L*realR*(Math.cos((start_theta+i*d_theta)*Math.PI/180)-Math.cos(start_theta*Math.PI/180));
-                                        //  console.log('SIN',(start_theta+i*d_theta),'-SIN',start_theta,'corBshift=',ratio_B*realR*(Math.sin(start_theta*Math.PI/180)-Math.sin((start_theta+i*d_theta)*Math.PI/180)));
-                                        cor_B[i]=start_Lat+ratio_B*realR*(Math.sin((start_theta+i*d_theta)*Math.PI/180)-Math.sin(start_theta*Math.PI/180));
-                                      }
-                                      if((end_Lon-start_Lon)<=0) {
-                                        cor_L[i]=start_Lon+ratio_L*realR*(Math.cos((start_theta+i*d_theta)*Math.PI/180)-Math.cos(start_theta*Math.PI/180));
-                                       // console.log('SIN',(start_theta+i*d_theta),'-SIN',start_theta,'corBshift=',ratio_B*realR*(Math.sin(start_theta*Math.PI/180)-Math.sin((start_theta+i*d_theta)*Math.PI/180)));
-                                        cor_B[i]=start_Lat-ratio_B*realR*(Math.sin(start_theta*Math.PI/180)-Math.sin((start_theta+i*d_theta)*Math.PI/180));
-                                      }
-                                       coordinate.latitude = cor_B[i];
-                                       coordinate.longitude =cor_L[i];
-                                                  // symmetry data come in:
-
+                                      if((end_Lon-start_Lon)>0) {// directing Right>>>
+                                        cor_L[i]=start_Lon+ratio_L*realR*(Math.cos((start_theta-i*d_theta)*Math.PI/180)-Math.cos(start_theta*Math.PI/180));
+                                        cor_B[i]=start_Lat+ratio_B*realR*(Math.sin((start_theta-i*d_theta)*Math.PI/180)-Math.sin(start_theta*Math.PI/180));
+                                         if((end_Lat-start_Lat)>0) {  //directing Up>>
                                               rev_B[i]=RevCenter_B-ratio_B*realR*(Math.sin((keyAngle-i*d_theta+Angle1)*Math.PI/180))  ;
-                                              rev_L[i]=RevCenter_L-ratio_L*realR*(Math.cos((keyAngle-i*d_theta+Angle1)*Math.PI/180)) ;
+                                              rev_L[i]=RevCenter_L+ratio_L*realR*(Math.cos((keyAngle-i*d_theta+Angle1)*Math.PI/180)) ;
+                                                    }
+                                         if((end_Lat-start_Lat)<=0) {  //directing down>>
+                                              rev_B[i]=RevCenter_B-ratio_B*realR*(Math.sin((keyAngle+i*d_theta)*Math.PI/180))  ;
+                                              rev_L[i]=RevCenter_L-ratio_L*realR*(Math.cos((keyAngle+i*d_theta)*Math.PI/180)) ;
+                                                    }
+                                         }
+                                      if((end_Lon-start_Lon)<=0) {// directing Left >>>
+                                        cor_L[i]=start_Lon+ratio_L*realR*(Math.cos((start_theta+i*d_theta)*Math.PI/180)-Math.cos(start_theta*Math.PI/180));
+                                        cor_B[i]=start_Lat-ratio_B*realR*(Math.sin(start_theta*Math.PI/180)-Math.sin((start_theta+i*d_theta)*Math.PI/180));
+                                          if((end_Lat-start_Lat)>0) {  //directing Up>>
+                                               rev_B[i]=RevCenter_B-ratio_B*realR*(Math.sin((keyAngle-i*d_theta+Angle1)*Math.PI/180))  ;
+                                               rev_L[i]=RevCenter_L-ratio_L*realR*(Math.cos((keyAngle-i*d_theta+Angle1)*Math.PI/180)) ;
+                                                     }
+                                          if((end_Lat-start_Lat)<=0) {  //directing down>>
+                                               rev_B[i]=RevCenter_B-ratio_B*realR*(Math.sin((keyAngle+i*d_theta)*Math.PI/180))  ;
+                                               rev_L[i]=RevCenter_L+ratio_L*realR*(Math.cos((keyAngle+i*d_theta)*Math.PI/180)) ;
+                                                     }
+                                      }
+                                               coordinate.latitude = cor_B[i];
+                                               coordinate.longitude =cor_L[i];
 
                                               if(myReverseCurve==1) {
                                                   coordinate.latitude = rev_B[i];
@@ -1241,22 +1216,24 @@ Item {
 
                                        coordinate.altitude = 6.180;
                                         _missionController.insertSimpleMissionItem(coordinate, nextIndex, true /* makeCurrentItem */);
-
+                                        myPosition=coordinate
+                                        //showCircle()
                                     }
                                 //set focus to last point as Visual Focus.
                                 _missionController.setCurrentPlanViewSeqNum((anchorIndex+points),false);
-
+                        //debug test to show ReverCenter Location
+                               // coordinate.latitude = RevCenter_B;
+                               // coordinate.longitude = RevCenter_L;
+                               // _missionController.insertSimpleMissionItem(coordinate, nextIndex, true /* makeCurrentItem */);
 
 
                              }
 
 
-
+// the operation Func for 'insertCurvedialog'  after choosing YES.
                         function accept() {
                             //_planMasterController.removeAll()
                             generatePath()
-                            //showCircle()
-
                             hideDialog()
                         }
         }
@@ -1981,7 +1958,7 @@ Item {
     GpsTest {
         anchors.right:        parent.right
         //anchors.top:                parent.BottomLeft
-        anchors.rightMargin:          180
+        anchors.rightMargin:          200
         //anchors.horizontalCenter:   parent.horizontalCenter
     }
     // update20221117 Leo add GPS real time get signal test window

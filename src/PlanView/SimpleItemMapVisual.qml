@@ -54,8 +54,8 @@ Item {
     //显示半径圈
             function showCircle() {
                 if (!_circleShowing) {
-                    //_circle = circleComponent.createObject(map)
-                    console.log('inMapVisual map=:',map)
+                    _circle = circleComponent.createObject(map)
+                   // console.log('inMapVisual Newmap=:',map)
                     //map.addMapItem(_circle)
                     //_circleShowing = true
                 }
@@ -123,7 +123,7 @@ Item {
     Component.onCompleted: {
         showItemVisuals()
         updateDragArea()
-       showCircle()
+        showCircle()
     }
 
     Component.onDestruction: {

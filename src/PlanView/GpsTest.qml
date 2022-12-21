@@ -273,8 +273,7 @@ import QtPositioning    5.3
                                               backRadius:                     height/2
                                               text:                           qsTr("更新参数Preview")
                                               onClicked: {
-                                                   myDistanceMaximum=9.9;
-                                                   myAngularMaximum=6.6;
+
                                                    myAngularStep=parseFloat(protectTextField1.text);
                                                    myAngularSpan=parseFloat(protectTextField3.text);
                                                    myDistanceStep=parseInt(protectTextField2.text);

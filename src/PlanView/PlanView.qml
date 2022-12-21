@@ -32,8 +32,8 @@ Item {
     id: _root
   //update20221125 Leo
 
-    property real myAngularMaximum: 5.0 // Unit degree Planning Curve  Path
-    property real myDistanceMaximum: 1.0 //Unit Meter(M) Planning Curve Path
+    property real myAngularMaximum: 50.0 // Protect for too big Number Warning
+    property real myDistanceMaximum: 50.0 //Protect for too big Number ,Warning
     property real myAngularSpan:60.0 //  Unit Degree in Clock-wise direction
     property real myAngularStep:2.0// Steps to increase in Angular Planning
     property real myDistanceStep:100.0//Unit in CM
@@ -1093,10 +1093,8 @@ Item {
                 var Angle3=(180.0-Angle1)*0.5;  // another two equal angle of the key triangle.
                 var keyAngle= Angle3- Angle2;
                 var start_theta= 0.0;var end_theta=0.0;
-
                 var   center_B= 0.0; var RevCenter_B=0.0;// Symmetry center1 B
                 var   center_L= 0.0; var RevCenter_L=0.0; //Symmetry  Center1 L
-
                 var shift_x=0.0;   var RevShift_x=0.0;
                 var shift_y=0.0;   var RevShift_y=0.0;
 
@@ -1161,21 +1159,19 @@ Item {
                      }
 
                 };
-                    var   center_H= 99.0;//圆心的 经纬度BLH坐标
-
-//                        console.log('startTheta=',start_theta,'Radius=',realR,'EndTheta=',end_theta);
- //                               const start_y=realR*Math.sin((start_theta)*Math.PI/180.0);//refer to center,  起始点的 x y z坐标and distance.in XY system.
+                                var   center_H= 99.0;//圆心的 经纬度BLH坐标
                                 var cor_x=new Array(50).fill(0.0); var cor_B=new Array(50).fill(0.0);var rev_B=new Array(50).fill(0.0);
                                 var cor_y=new Array(50).fill(0.0); var cor_L=new Array(50).fill(0.0);var rev_L=new Array(50).fill(0.0);
- //                               var x_shift=0.0; var y_shift=0.0;
                                 var N1=Math.ceil(Math.abs((end_theta - start_theta))/myAngularStep);//set to be 5 degree as default in angle.
                                 var N2=Math.ceil(Math.abs((end_theta - start_theta))*Math.PI*200*realR/(360*myDistanceStep));//set to be 20cm
+                                if(N1>myAngularMaximum)  N1=myAngularMaximum;
+                                if(N2>myDistanceMaximum)  N2=myDistanceMaximum;
                                 var N=Math.max(N1,N2);
                                 console.log('N1,2=',N1,N2,'distance=',distance,'realR=',realR,'DistanceStep=',myDistanceStep);
                                 var points=N;
                                 const d_theta=Math.abs((end_theta- start_theta))/N;
 
-                // pinpoint the Center and Symmetry Center of cirle
+                // test pinpoint the Center and Symmetry Center of cirle
                  var nextIndex= _missionController.currentPlanViewVIIndex;
                   coordinate.altitude = 6.180;
                                var anchorIndex = _missionController.currentPlanViewVIIndex-1;

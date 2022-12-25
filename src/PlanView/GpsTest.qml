@@ -15,14 +15,24 @@ import QtPositioning    5.3
 
 
     Rectangle {
+//        id:     gpsTrackor
+//        width:   rowRoot.width + 10
+//        height:  rowRoot.height + 10
+//        color:   "orange"
+//        opacity:  0.8
+//        anchors.right:        parent.right
+//        radius: 15
         id:     gpsTrackor
-        width:   rowRoot.width + 10
-        height:  rowRoot.height + 10
-        color:   "orange"
-        opacity:  0.8
-        anchors.right:        parent.right
-        radius: 15
-
+              width:   rowRoot.width *1.3
+              height:  rowRoot.height *1.3
+              color:   "orange"
+              opacity:  0.8
+              //anchors.top:        parent.top
+              anchors.right:      parent.right
+              anchors.rightMargin: 50
+              //anchors.topMargin:    10
+              //anchors.horizontalCenter:   parent.horizontalCenter
+              radius: 15
 
         ///----内部使用：
         //定义变量    Updated 20221209 LEO

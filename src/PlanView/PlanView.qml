@@ -39,7 +39,7 @@ Item {
     property real myDistanceStep:100.0//Unit in CM
     property int myReverseCurve: 0// to decide if we revert the curve path
     property var myPosition: ({}) // use this share location for Visual Effect of Arc planning Preview
-
+    property bool previewControlColapsed: false  // control my Preview Panel ,show or Off.
     property bool planControlColapsed: false
 
     readonly property int   _decimalPlaces:             8
@@ -72,19 +72,20 @@ Item {
     readonly property string    _armedVehicleUploadPrompt:  qsTr("Vehicle is currently armed. Do you want to upload the mission to the vehicle?")
 
 
-   Component {
-               id: circleComponent2
-                       MapCircle {
-                           color:          Qt.rgba(0,0,0,0)
-                           border.color:   "yellow"
-                           border.width:   6
 
-                           center:         myPosition
-                           //center:         QtPositioning.coordinate()
-                           radius:         200
-                           visible:        true
-                       }
-                   }
+//   Component {
+//               id: circleComponent2
+//                       MapCircle {
+//                           color:          Qt.rgba(0,0,0,0)
+//                           border.color:   "yellow"
+//                           border.width:   6
+
+//                           center:         myPosition
+//                           //center:         QtPositioning.coordinate()
+//                           radius:         200
+//                           visible:        true
+//                       }
+//                   }
 
 //   Component.onCompleted: {
 
@@ -572,17 +573,14 @@ Item {
                         var centerPoint = Qt.point(editorMap.centerViewport.left + (editorMap.centerViewport.width / 2), editorMap.centerViewport.top + (editorMap.centerViewport.height / 2))
                         return editorMap.toCoordinate(centerPoint, false /* clipToViewPort */)
                     }
-//                    onClicked:  _missionController.insertSimpleMissionItem(splitSegmentItem.coordinate,
-//                                                                           _missionController.currentPlanViewVIIndex,
-//                                                                           true /* makeCurrentItem */)
-                    onClicked:  {
-                        //console.log("P1-coor:",_missionController.splitSegment.coordinate1.longitude.toFixed(6))
-                        //console.log("P2-coor:",_missionController.splitSegment.coordinate2.latitude.toFixed(6))
-                        mainWindow.showComponentDialog(insertCurvePromptDialog, qsTr("Insert Curve Plan"), mainWindow.showDialogDefaultWidth, StandardButton.Yes | StandardButton.No)
-                     //   mainWindow.showMessageDialog(qsTr("Confirm Step="), qsTr('Wanted Information'))
-                      //  console.log("Maximum Steplean:",myAngularMaximum,myDistanceMaximum)
+                    onClicked:  _missionController.insertSimpleMissionItem(splitSegmentItem.coordinate,
+                                                                           _missionController.currentPlanViewVIIndex,
+                                                                           true /* makeCurrentItem */)
+                 //   onClicked:  {
+                  //      mainWindow.showComponentDialog(insertCurvePromptDialog, qsTr("Insert Curve Plan"), mainWindow.showDialogDefaultWidth, StandardButton.Yes | StandardButton.No)
+                   //      }
 
-                         }
+
 
                 }
 
@@ -781,7 +779,27 @@ Item {
                         enabled:            true
                         visible:            true
                         dropPanelComponent: centerMapDropPanel
+                    },
+                    ToolStripAction {
+                        text:                qsTr("清除所有")
+                        iconSource:         "/res/TrashDelete.svg"
+                        enabled:            true
+                        //visible:            toolStrip._isMissionLayer && _planMasterController.controllerVehicle.roiModeSupported
+                        visible:            true
+                        checkable:          true
+                        //onCheckedChanged:   _addROIOnClick = checked
+                        onTriggered: {
+                            console.log('Remove All and Restart Button Clicked');
+                            _planMasterController.removeAll();
+                            setGpsTest.myPreviewClicked=false;
+                            setGpsTest.previewControlColapsed=false;
+                            editorMap.clearMapItems();
+                        }
+
                     }
+
+
+
                 ]
             }
 
@@ -1053,22 +1071,6 @@ Item {
         QGCViewMessage {
             message: qsTr("Are you sure you want to create a new curve plan between these 2 ponits? ")
             //定义变量    Updated 20221209 LEO
-            property var    _circle
-            property bool   _circleShowing:   false
-           //显示半径圈
-            function showCircle() {
-                    _circle = circleComponent2.createObject(editorMap)
-                    console.log('inPlanView New Test map=:',editorMap,'myCor=',myPosition)
-                    _circle.center=myPosition
-                    editorMap.addMapItem(_circle)
-                   _circleShowing = true
-            }
-            function hideCircle() {
-                if (_circleShowing) {
-                    _circle.destroy()
-                    _circleShowing = false
-                }
-            }
 
             function generatePath(){
                   const start_Lat = parseFloat(_missionController.splitSegment.coordinate1.latitude);
@@ -1127,8 +1129,6 @@ Item {
                            RevCenter_B= end_Lat+RevShift_y*ratio_B;//
                            RevCenter_L= end_Lon-RevShift_x*ratio_L;//
                        }
-
-
 
 
                 };
@@ -1229,6 +1229,7 @@ Item {
 // the operation Func for 'insertCurvedialog'  after choosing YES.
                         function accept() {
                             //_planMasterController.removeAll()
+                            setGpsTest.hideCircle()
                             generatePath()
                             hideDialog()
                         }
@@ -1309,69 +1310,69 @@ Item {
                 showSpacer:         false
             }
 
-            GridLayout {
-                columns:            2
-                columnSpacing:      _margin
-                rowSpacing:         _margin
-                Layout.fillWidth:   true
-                visible:            createSection.visible
+//            GridLayout {
+//                columns:            2
+//                columnSpacing:      _margin
+//                rowSpacing:         _margin
+//                Layout.fillWidth:   true
+//                visible:            createSection.visible
 
-                Repeater {
-                    model: _planMasterController.planCreators
+//                Repeater {
+//                    model: _planMasterController.planCreators
 
-                    Rectangle {
-                        id:     button
-                        width:  ScreenTools.defaultFontPixelHeight * 7
-                        height: planCreatorNameLabel.y + planCreatorNameLabel.height
-                        color:  button.pressed || button.highlighted ? qgcPal.buttonHighlight : qgcPal.button
+//                    Rectangle {
+//                        id:     button
+//                        width:  ScreenTools.defaultFontPixelHeight * 7
+//                        height: planCreatorNameLabel.y + planCreatorNameLabel.height
+//                        color:  button.pressed || button.highlighted ? qgcPal.buttonHighlight : qgcPal.button
 
-                        property bool highlighted: mouseArea.containsMouse
-                        property bool pressed:     mouseArea.pressed
+//                        property bool highlighted: mouseArea.containsMouse
+//                        property bool pressed:     mouseArea.pressed
 
-                        Image {
-                            id:                 planCreatorImage
-                            anchors.left:       parent.left
-                            anchors.right:      parent.right
-                            source:             object.imageResource
-                            sourceSize.width:   width
-                            fillMode:           Image.PreserveAspectFit
-                            mipmap:             true
-                        }
+//                        Image {
+//                            id:                 planCreatorImage
+//                            anchors.left:       parent.left
+//                            anchors.right:      parent.right
+//                            source:             object.imageResource
+//                            sourceSize.width:   width
+//                            fillMode:           Image.PreserveAspectFit
+//                            mipmap:             true
+//                        }
 
-                        QGCLabel {
-                            id:                     planCreatorNameLabel
-                            anchors.top:            planCreatorImage.bottom
-                            anchors.left:           parent.left
-                            anchors.right:          parent.right
-                            horizontalAlignment:    Text.AlignHCenter
-                            text:                   object.name
-                            color:                  button.pressed || button.highlighted ? qgcPal.buttonHighlightText : qgcPal.buttonText
-                        }
+//                        QGCLabel {
+//                            id:                     planCreatorNameLabel
+//                            anchors.top:            planCreatorImage.bottom
+//                            anchors.left:           parent.left
+//                            anchors.right:          parent.right
+//                            horizontalAlignment:    Text.AlignHCenter
+//                            text:                   object.name
+//                            color:                  button.pressed || button.highlighted ? qgcPal.buttonHighlightText : qgcPal.buttonText
+//                        }
 
-                        QGCMouseArea {
-                            id:                 mouseArea
-                            anchors.fill:       parent
-                            hoverEnabled:       true
-                            preventStealing:    true
-                            onClicked:          {
-                                if (_planMasterController.containsItems) {
-                                    createPlanRemoveAllPromptDialogMapCenter = _mapCenter()
-                                    createPlanRemoveAllPromptDialogPlanCreator = object
-                                    mainWindow.showComponentDialog(createPlanRemoveAllPromptDialog, qsTr("Create Plan"), mainWindow.showDialogDefaultWidth, StandardButton.Yes | StandardButton.No)
-                                } else {
-                                    object.createPlan(_mapCenter())
-                                }
-                                dropPanel.hide()
-                            }
+//                        QGCMouseArea {
+//                            id:                 mouseArea
+//                            anchors.fill:       parent
+//                            hoverEnabled:       true
+//                            preventStealing:    true
+//                            onClicked:          {
+//                                if (_planMasterController.containsItems) {
+//                                    createPlanRemoveAllPromptDialogMapCenter = _mapCenter()
+//                                    createPlanRemoveAllPromptDialogPlanCreator = object
+//                                    mainWindow.showComponentDialog(createPlanRemoveAllPromptDialog, qsTr("Create Plan"), mainWindow.showDialogDefaultWidth, StandardButton.Yes | StandardButton.No)
+//                                } else {
+//                                    object.createPlan(_mapCenter())
+//                                }
+//                                dropPanel.hide()
+//                            }
 
-                            function _mapCenter() {
-                                var centerPoint = Qt.point(editorMap.centerViewport.left + (editorMap.centerViewport.width / 2), editorMap.centerViewport.top + (editorMap.centerViewport.height / 2))
-                                return editorMap.toCoordinate(centerPoint, false /* clipToViewPort */)
-                            }
-                        }
-                    }
-                }
-            }
+//                            function _mapCenter() {
+//                                var centerPoint = Qt.point(editorMap.centerViewport.left + (editorMap.centerViewport.width / 2), editorMap.centerViewport.top + (editorMap.centerViewport.height / 2))
+//                                return editorMap.toCoordinate(centerPoint, false /* clipToViewPort */)
+//                            }
+//                        }
+//                    }
+//                }
+//            }
 
             SectionHeader {
                 id:                 storageSection
@@ -1451,447 +1452,447 @@ Item {
                 }
             }
 
-            SectionHeader {
-                id:                 mmtekSection
-                Layout.fillWidth:   true
-                text:               qsTr("MMTEK Manually Plan")
-            }
-            GridLayout {
+//            SectionHeader {
+//                id:                 mmtekSection
+//                Layout.fillWidth:   true
+//                text:               qsTr("MMTEK Manually Plan")
+//            }
+//            GridLayout {
 
-                columns:            2
-                rowSpacing:         _margin
-                columnSpacing:      ScreenTools.defaultFontPixelWidth
-                visible:            mmtekSection.visible
+//                columns:            2
+//                rowSpacing:         _margin
+//                columnSpacing:      ScreenTools.defaultFontPixelWidth
+//                visible:            mmtekSection.visible
 
-                        Column {
-                            id:                     col
-                            spacing:                3
-                            //anchors.centerIn:       parent
-                            QGCLabel {
-                                anchors.horizontalCenter:   parent.horizontalCenter
-                                text:                       "圆弧路径 发送测试！"
-                                font.pointSize:             12
-                                font.bold:                  true
-                                color:                      "orange"
-                            }
-                            Row {
-                                spacing:                2
-                                Layout.fillWidth:   true
-                                anchors.left:       parent.left
-                                //anchors.right:      parent.right
-                                QGCLabel {
-                                    id:                         tipsLabel
-                                    //anchors.verticalCenter:     protectTextField1.verticalCenter
-                                    text:                       qsTr("圆心 B经度/L纬度/H高程：")
-                                    font.pointSize:             8
-                                    font.bold:                  true
-                                    color:                      "#B7FF4A"
-                                }
-                                QGCTextField {
-                                    id:                         protectTextField0
-                                    width:                      40
-                                    height:                     tipsLabel2.implicitHeight * 1.5
-                                    text:                       "30.5478497"
-                                    inputMethodHints:           Qt.ImhFormattedNumbersOnly
-                                    focus:                      true
-                                    onEditingFinished: {
-                                        if(text > 10000) {
-                                            text = 10000
-                                            mainWindow.showMessageDialog(qsTr("警告"), qsTr("输入必须小于等于10000"))
-                                        }
-                                        else if(text < 0) {
-                                            text = 0
-                                            mainWindow.showMessageDialog(qsTr("警告"), qsTr("输入必须大于等于0"))
-                                        }
-                                    }
-                                }
-                                QGCTextField {
-                                    id:                         protectTextField1
-                                    width:                      40
-                                    height:                     tipsLabel.implicitHeight * 1.5
-                                    text:                       "114.37921215"
-                                    inputMethodHints:           Qt.ImhFormattedNumbersOnly
-                                    focus:                      true
-                                    onEditingFinished: {
-                                        if(text > 10000) {
-                                            text = 10000
-                                            mainWindow.showMessageDialog(qsTr("警告"), qsTr("输入必须小于等于10000"))
-                                        }
-                                        else if(text < 0) {
-                                            text = 0
-                                            mainWindow.showMessageDialog(qsTr("警告"), qsTr("输入必须大于等于0"))
-                                        }
-                                    }
-                                }
-                                QGCTextField {
-                                    id:                         protectTextField2
-                                    width:                      40
-                                    height:                     tipsLabel.implicitHeight * 1.5
-                                    text:                       "50.0"
-                                    inputMethodHints:           Qt.ImhFormattedNumbersOnly
-                                    focus:                      true
-                                    onEditingFinished: {
-                                        if(text > 1000) {
-                                            text = 1000
-                                            mainWindow.showMessageDialog(qsTr("警告"), qsTr("输入必须小于等于1000"))
-                                        }
-                                        else if(text < 0) {
-                                            text = 0
-                                            mainWindow.showMessageDialog(qsTr("警告"), qsTr("输入必须大于等于0"))
-                                        }
-                                    }
-                                }
-                            }
-                            Row {
-                                Layout.fillWidth:   true
-                                //anchors.left:       parent.left
-                                //anchors.right:      parent.right
-                                QGCLabel {
-                                    id:                         tipsLabel2
-                                    //anchors.verticalCenter:     protectTextField2.verticalCenter
-                                    text:                       qsTr("圆半径：(cm)")
-                                    font.pointSize:             8
-                                    font.bold:                  true
-                                    color:                      "#B7FF4A"
-                                }
-                                //保护距离的输入
-                                QGCTextField {
-                                    id:                         protectTextField3
-                                    width:                      40
-                                    height:                     tipsLabel2.implicitHeight * 1.5
-                                    text:                       "186871.721282235"
-                                    inputMethodHints:           Qt.ImhFormattedNumbersOnly
-                                    focus:                      true
-                                    onEditingFinished: {
-                                        if(text > 500000) {
-                                            text = 500000
-                                            mainWindow.showMessageDialog(qsTr("警告"), qsTr("输入必须小于等于500000CM"))
-                                        }
-                                        else if(text < 0) {
-                                            text = 0
-                                            mainWindow.showMessageDialog(qsTr("警告"), qsTr("输入必须大于等于0"))
-                                        }
-                                    }
-                                }
-                            }
-
-                            Row {
-                                //anchors.left:       parent.left
-                                //anchors.right:      parent.right
-                                Layout.fillWidth:   true
-                                QGCLabel {
-                                    id:                         tipsLabel3
-                                    //anchors.verticalCenter:     protectTextField3.verticalCenter
-                                    text:                       qsTr("弧度起点/终点：")
-                                    font.pointSize:             8
-                                    font.bold:                  true
-                                    color:                      "#B7FF4A"
-                                }
-                                //保护距离的输入
-                                QGCTextField {
-                                    id:                         protectTextField4
-                                    width:                      40
-                                    height:                     tipsLabel3.implicitHeight * 1.5
-                                    text:                       "0"
-                                    inputMethodHints:           Qt.ImhFormattedNumbersOnly
-                                    focus:                      true
-                                    onEditingFinished: {
-                                        if(text > 360) {
-                                            text = 360
-                                            mainWindow.showMessageDialog(qsTr("警告"), qsTr("输入必须小于等于360degree"))
-                                        }
-                                        else if(text < 0) {
-                                            text = 0
-                                            mainWindow.showMessageDialog(qsTr("警告"), qsTr("输入必须大于等于0"))
-                                        }
-                                    }
-                                }
-                                QGCTextField {
-                                    id:                         protectTextField5
-                                    width:                      40
-                                    height:                     tipsLabel3.implicitHeight * 1.5
-                                    text:                       "180"
-                                    inputMethodHints:           Qt.ImhFormattedNumbersOnly
-                                    focus:                      true
-                                    onEditingFinished: {
-                                        if(text > 360) {
-                                            text = 360
-                                            mainWindow.showMessageDialog(qsTr("警告"), qsTr("输入必须小于等于360"))
-                                        }
-                                        else if(text < 0) {
-                                            text = 0
-                                            mainWindow.showMessageDialog(qsTr("警告"), qsTr("输入必须大于等于0"))
-                                        }
-                                    }
-                                }
-                            }
-
-                            Row {
-                                //anchors.left:       parent.left
-                                //anchors.right:      parent.right
-                                Layout.fillWidth:   true
-                                QGCLabel {
-                                    id:                         tipsLabel4
-                                    //anchors.verticalCenter:     protectTextField3.verticalCenter
-                                    text:                       qsTr("离散航点密度限定(cm)/角度(°)：")
-                                    font.pointSize:             8
-                                    font.bold:                  true
-                                    color:                      "#B7FF4A"
-                                }
-                                //保护距离的输入
-                                QGCTextField {
-                                    id:                         protectTextField6
-                                    width:                      40
-                                    height:                     tipsLabel4.implicitHeight * 1.5
-                                    text:                       "1"
-                                    inputMethodHints:           Qt.ImhFormattedNumbersOnly
-                                    focus:                      true
-                                    onEditingFinished: {
-                                        if(text > 256) {
-                                            text = 256
-                                            mainWindow.showMessageDialog(qsTr("警告"), qsTr("输入必须小于等于256"))
-                                        }
-                                        else if(text < 0) {
-                                            text = 0
-                                            mainWindow.showMessageDialog(qsTr("警告"), qsTr("输入必须大于等于0"))
-                                        }
-                                    }
-                                }
-                                QGCTextField {
-                                    id:                         protectTextField7
-                                    width:                      40
-                                    height:                     tipsLabel4.implicitHeight * 1.5
-                                    text:                       "1"
-                                    inputMethodHints:           Qt.ImhFormattedNumbersOnly
-                                    focus:                      true
-                                    onEditingFinished: {
-                                        if(text > 256) {
-                                            text = 256
-                                            mainWindow.showMessageDialog(qsTr("警告"), qsTr("输入必须小于等于256"))
-                                        }
-                                        else if(text < 0) {
-                                            text = 0
-                                            mainWindow.showMessageDialog(qsTr("警告"), qsTr("输入必须大于等于0"))
-                                        }
-                                    }
-                                }
-                            }
-                        Row {
-                            spacing:8
-
-
-                            Layout.fillWidth:   true
-
-                            QGCButton {
-                                //Layout.columnSpan:  3
-
-                                Layout.fillWidth:   true
-
-                                id:                             mavTestButton1
-                                backRadius:                     height/4
-                                text:                           qsTr("Delete Selected Point")
-                               // enabled:                        activeVehicle
-
-                                function blConstant(){
-                                    console.log("Order a straight line Path of 10 meters to register local 经纬差")
-                                    console.log("Current local 经差=96.234340763 KM")
-                                    console.log("Current local 纬差=111.12219769899 KM")
-
-
-                                }
-
-                                onClicked: {
-                                    var removeVIIndex = _missionController.currentPlanViewSeqNum
-                                    _missionController.removeVisualItem(removeVIIndex)
-                                    if (removeVIIndex >= _missionController.visualItems.count) {
-                                        removeVIIndex--
-
-//
-                                }
-                                    selectNextNotReady()
-                              }
-                            }
-                            QGCButton {
-                                //Layout.columnSpan:  3
-
-                                Layout.fillWidth:   true
-
-                                id:                             mavTestButton2
-                                backRadius:                     height/4
-                                text:                           qsTr("Generate")
-                                //enabled:                        activeVehicle
-
-                                //function insertMmtekItemAfterCurrent(coordinate) {
-                                //    var nextIndex = _missionController.currentPlanViewVIIndex + 1
-                                 //   _missionController.insertSimpleMissionItem(coordinate, nextIndex, true /* makeCurrentItem */)
-                               // }
-
-//                                function Timer() {
-//                                    return Qt.createQmlObject("import QtQuick 2.0; Timer {}", root);
+//                        Column {
+//                            id:                     col
+//                            spacing:                3
+//                            //anchors.centerIn:       parent
+//                            QGCLabel {
+//                                anchors.horizontalCenter:   parent.horizontalCenter
+//                                text:                       "圆弧路径 发送测试！"
+//                                font.pointSize:             12
+//                                font.bold:                  true
+//                                color:                      "orange"
+//                            }
+//                            Row {
+//                                spacing:                2
+//                                Layout.fillWidth:   true
+//                                anchors.left:       parent.left
+//                                //anchors.right:      parent.right
+//                                QGCLabel {
+//                                    id:                         tipsLabel
+//                                    //anchors.verticalCenter:     protectTextField1.verticalCenter
+//                                    text:                       qsTr("圆心 B经度/L纬度/H高程：")
+//                                    font.pointSize:             8
+//                                    font.bold:                  true
+//                                    color:                      "#B7FF4A"
 //                                }
-                                function delay(delayTime,cb) {
-                                    timer.interval = delayTime;
-                                    timer.repeat = false;
-                                    timer.triggered.connect(cb)
-                                    timer.start();
+//                                QGCTextField {
+//                                    id:                         protectTextField0
+//                                    width:                      40
+//                                    height:                     tipsLabel2.implicitHeight * 1.5
+//                                    text:                       "30.5478497"
+//                                    inputMethodHints:           Qt.ImhFormattedNumbersOnly
+//                                    focus:                      true
+//                                    onEditingFinished: {
+//                                        if(text > 10000) {
+//                                            text = 10000
+//                                            mainWindow.showMessageDialog(qsTr("警告"), qsTr("输入必须小于等于10000"))
+//                                        }
+//                                        else if(text < 0) {
+//                                            text = 0
+//                                            mainWindow.showMessageDialog(qsTr("警告"), qsTr("输入必须大于等于0"))
+//                                        }
+//                                    }
+//                                }
+//                                QGCTextField {
+//                                    id:                         protectTextField1
+//                                    width:                      40
+//                                    height:                     tipsLabel.implicitHeight * 1.5
+//                                    text:                       "114.37921215"
+//                                    inputMethodHints:           Qt.ImhFormattedNumbersOnly
+//                                    focus:                      true
+//                                    onEditingFinished: {
+//                                        if(text > 10000) {
+//                                            text = 10000
+//                                            mainWindow.showMessageDialog(qsTr("警告"), qsTr("输入必须小于等于10000"))
+//                                        }
+//                                        else if(text < 0) {
+//                                            text = 0
+//                                            mainWindow.showMessageDialog(qsTr("警告"), qsTr("输入必须大于等于0"))
+//                                        }
+//                                    }
+//                                }
+//                                QGCTextField {
+//                                    id:                         protectTextField2
+//                                    width:                      40
+//                                    height:                     tipsLabel.implicitHeight * 1.5
+//                                    text:                       "50.0"
+//                                    inputMethodHints:           Qt.ImhFormattedNumbersOnly
+//                                    focus:                      true
+//                                    onEditingFinished: {
+//                                        if(text > 1000) {
+//                                            text = 1000
+//                                            mainWindow.showMessageDialog(qsTr("警告"), qsTr("输入必须小于等于1000"))
+//                                        }
+//                                        else if(text < 0) {
+//                                            text = 0
+//                                            mainWindow.showMessageDialog(qsTr("警告"), qsTr("输入必须大于等于0"))
+//                                        }
+//                                    }
+//                                }
+//                            }
+//                            Row {
+//                                Layout.fillWidth:   true
+//                                //anchors.left:       parent.left
+//                                //anchors.right:      parent.right
+//                                QGCLabel {
+//                                    id:                         tipsLabel2
+//                                    //anchors.verticalCenter:     protectTextField2.verticalCenter
+//                                    text:                       qsTr("圆半径：(cm)")
+//                                    font.pointSize:             8
+//                                    font.bold:                  true
+//                                    color:                      "#B7FF4A"
+//                                }
+//                                //保护距离的输入
+//                                QGCTextField {
+//                                    id:                         protectTextField3
+//                                    width:                      40
+//                                    height:                     tipsLabel2.implicitHeight * 1.5
+//                                    text:                       "186871.721282235"
+//                                    inputMethodHints:           Qt.ImhFormattedNumbersOnly
+//                                    focus:                      true
+//                                    onEditingFinished: {
+//                                        if(text > 500000) {
+//                                            text = 500000
+//                                            mainWindow.showMessageDialog(qsTr("警告"), qsTr("输入必须小于等于500000CM"))
+//                                        }
+//                                        else if(text < 0) {
+//                                            text = 0
+//                                            mainWindow.showMessageDialog(qsTr("警告"), qsTr("输入必须大于等于0"))
+//                                        }
+//                                    }
+//                                }
+//                            }
 
-                                }
+//                            Row {
+//                                //anchors.left:       parent.left
+//                                //anchors.right:      parent.right
+//                                Layout.fillWidth:   true
+//                                QGCLabel {
+//                                    id:                         tipsLabel3
+//                                    //anchors.verticalCenter:     protectTextField3.verticalCenter
+//                                    text:                       qsTr("弧度起点/终点：")
+//                                    font.pointSize:             8
+//                                    font.bold:                  true
+//                                    color:                      "#B7FF4A"
+//                                }
+//                                //保护距离的输入
+//                                QGCTextField {
+//                                    id:                         protectTextField4
+//                                    width:                      40
+//                                    height:                     tipsLabel3.implicitHeight * 1.5
+//                                    text:                       "0"
+//                                    inputMethodHints:           Qt.ImhFormattedNumbersOnly
+//                                    focus:                      true
+//                                    onEditingFinished: {
+//                                        if(text > 360) {
+//                                            text = 360
+//                                            mainWindow.showMessageDialog(qsTr("警告"), qsTr("输入必须小于等于360degree"))
+//                                        }
+//                                        else if(text < 0) {
+//                                            text = 0
+//                                            mainWindow.showMessageDialog(qsTr("警告"), qsTr("输入必须大于等于0"))
+//                                        }
+//                                    }
+//                                }
+//                                QGCTextField {
+//                                    id:                         protectTextField5
+//                                    width:                      40
+//                                    height:                     tipsLabel3.implicitHeight * 1.5
+//                                    text:                       "180"
+//                                    inputMethodHints:           Qt.ImhFormattedNumbersOnly
+//                                    focus:                      true
+//                                    onEditingFinished: {
+//                                        if(text > 360) {
+//                                            text = 360
+//                                            mainWindow.showMessageDialog(qsTr("警告"), qsTr("输入必须小于等于360"))
+//                                        }
+//                                        else if(text < 0) {
+//                                            text = 0
+//                                            mainWindow.showMessageDialog(qsTr("警告"), qsTr("输入必须大于等于0"))
+//                                        }
+//                                    }
+//                                }
+//                            }
 
-                                Timer {id: timer}
+//                            Row {
+//                                //anchors.left:       parent.left
+//                                //anchors.right:      parent.right
+//                                Layout.fillWidth:   true
+//                                QGCLabel {
+//                                    id:                         tipsLabel4
+//                                    //anchors.verticalCenter:     protectTextField3.verticalCenter
+//                                    text:                       qsTr("离散航点密度限定(cm)/角度(°)：")
+//                                    font.pointSize:             8
+//                                    font.bold:                  true
+//                                    color:                      "#B7FF4A"
+//                                }
+//                                //保护距离的输入
+//                                QGCTextField {
+//                                    id:                         protectTextField6
+//                                    width:                      40
+//                                    height:                     tipsLabel4.implicitHeight * 1.5
+//                                    text:                       "1"
+//                                    inputMethodHints:           Qt.ImhFormattedNumbersOnly
+//                                    focus:                      true
+//                                    onEditingFinished: {
+//                                        if(text > 256) {
+//                                            text = 256
+//                                            mainWindow.showMessageDialog(qsTr("警告"), qsTr("输入必须小于等于256"))
+//                                        }
+//                                        else if(text < 0) {
+//                                            text = 0
+//                                            mainWindow.showMessageDialog(qsTr("警告"), qsTr("输入必须大于等于0"))
+//                                        }
+//                                    }
+//                                }
+//                                QGCTextField {
+//                                    id:                         protectTextField7
+//                                    width:                      40
+//                                    height:                     tipsLabel4.implicitHeight * 1.5
+//                                    text:                       "1"
+//                                    inputMethodHints:           Qt.ImhFormattedNumbersOnly
+//                                    focus:                      true
+//                                    onEditingFinished: {
+//                                        if(text > 256) {
+//                                            text = 256
+//                                            mainWindow.showMessageDialog(qsTr("警告"), qsTr("输入必须小于等于256"))
+//                                        }
+//                                        else if(text < 0) {
+//                                            text = 0
+//                                            mainWindow.showMessageDialog(qsTr("警告"), qsTr("输入必须大于等于0"))
+//                                        }
+//                                    }
+//                                }
+//                            }
+//                        Row {
+//                            spacing:8
 
 
-//                                function setTimeout(callback,delayTime) {
-//                                   //timer = new Timer();
-//                                   timer.interval = delayTime;
-//                                   timer.repeat = false;
-//                                   timer.triggered.connect(callback);
-//                                   timer.start();
+//                            Layout.fillWidth:   true
+
+//                            QGCButton {
+//                                //Layout.columnSpan:  3
+
+//                                Layout.fillWidth:   true
+
+//                                id:                             mavTestButton1
+//                                backRadius:                     height/4
+//                                text:                           qsTr("Delete Selected Point")
+//                               // enabled:                        activeVehicle
+
+//                                function blConstant(){
+//                                    console.log("Order a straight line Path of 10 meters to register local 经纬差")
+//                                    console.log("Current local 经差=96.234340763 KM")
+//                                    console.log("Current local 纬差=111.12219769899 KM")
+
+
 //                                }
 
-//                                function task_Timer(i,coordinate,nextIndex){
-//                                   setTimeout(function(){
-//                                       _missionController.insertSimpleMissionItem(coordinate, nextIndex, true /* makeCurrentItem */);
-//                                       console.log("WritingTask Loop timer tigger: #",i);
-//                                   },3000);
+//                                onClicked: {
+//                                    var removeVIIndex = _missionController.currentPlanViewSeqNum
+//                                    _missionController.removeVisualItem(removeVIIndex)
+//                                    if (removeVIIndex >= _missionController.visualItems.count) {
+//                                        removeVIIndex--
+
+////
 //                                }
-                                function generatePath(){
-                                                  var coordinate = editorMap.center
-                                                  const  realR= parseFloat(protectTextField3.text);//inputed data
-                                                  const   center_B= parseFloat(protectTextField0.text);//inputed data
-                                                  const   center_H= parseFloat(protectTextField2.text);//inputed data
-                                                  const   center_L= parseFloat(protectTextField1.text);//圆心的 经纬度BLH坐标
-                                                  const ratio_B= (1.0/111122.19769899000); // 1meter=? degree in B ,纬度
-                                                  const ratio_L= (1.0/96234.340763000);   //1meter=? degree in L,经度
-                                                  const  start_theta=parseFloat(protectTextField4.text);
-                                                  const  end_theta=parseFloat(protectTextField5.text);//起始和终点的圆心角 0---360度。
-
-                                                    const start_x=realR*Math.cos((start_theta)*Math.PI/180.0);
-                                                    const start_y=realR*Math.sin((start_theta)*Math.PI/180.0);//起始点的 xyz坐标系中初始化为 0,0,0
-                                                    const start_B=center_B+(0.01)*ratio_B*realR*Math.sin((start_theta)*Math.PI/180.0);  //realR in CM unit.
-                                                    const start_L=center_L+(0.01)*ratio_L*realR*Math.cos((start_theta)*Math.PI/180.0);//起始点的 xyz坐标系中初始化为 0,0,0
-                                                    const cor_x=new Array(50).fill(0.0); const cor_B=new Array(50).fill(0.0);
-                                                    const cor_y=new Array(50).fill(0.0); const cor_L=new Array(50).fill(0.0);
-
-                                                    var x_shift=0.0; var y_shift=0.0;
-                                                    const N1=Math.ceil((end_theta- start_theta)/5.0);//set to be 5 degree in angle.
-                                                    const N2=Math.ceil((end_theta- start_theta)*Math.PI*2*realR/(360*20));//set to be 20cm
-                                                    const N=20.0; //=Math.max(N1,N2);
-
-                                                    const d_theta=(end_theta- start_theta)/N;
-                                                    var points=N;
-
-                                                    console.log("**Generating Arc Path......","N1=",N1,"N2=",N2,"N=",N,"D-theta=",d_theta)
-                                                    console.log("**Lat=",center_B)
-                                                    console.log("**Lon=",center_L)
-                                                    console.log("**Height=",center_H)
-                                                    console.log("**Radius=",realR)
-                                                    console.log("**角度制starting from ",start_theta,"° To",end_theta,"°")
-                                                    for(let i=0; i<=points;i++) {
-                                                        var nextIndex = _missionController.currentPlanViewVIIndex + 1;
-                                                        cor_x[i]= start_x+realR*(Math.cos((start_theta+i*d_theta)*Math.PI/180)-Math.cos(start_theta*Math.PI/180));
-                                                        cor_y[i]= start_y-realR*(Math.sin(start_theta*Math.PI/180)-Math.sin((start_theta+i*d_theta)*Math.PI/180));
-                                                        cor_B[i]=start_L+(0.01)*ratio_L*realR*(Math.cos((start_theta+i*d_theta)*Math.PI/180)-Math.cos(start_theta*Math.PI/180));
-                                                        cor_L[i]=start_B-(0.01)*ratio_B*realR*(Math.sin(start_theta*Math.PI/180)-Math.sin((start_theta+i*d_theta)*Math.PI/180));
-                                                        console.log("MainLoop#",i," point in XYZ cor:", cor_x[i].toFixed(3),cor_y[i].toFixed(3));
-                                                        console.log("MainLoop#",i," waypoint in BLH cor: ",cor_L[i].toFixed(9),cor_B[i].toFixed(9));
-                                                     //inster Prepare Entry point. and Setting up Prepare Entry Path Length
-                                                     const entrylength=10.0; // Unit as in Meter
-
-                                                        if(i==0){
-                                                         x_shift=entrylength*Math.sin(start_theta*Math.PI/180);  //unit as in Meter
-                                                         y_shift=-1.0*entrylength*Math.cos(start_theta*Math.PI/180);
-                                                           coordinate.latitude = cor_L[i]+y_shift*ratio_B;
-                                                            coordinate.longitude =cor_B[i]+x_shift*ratio_L;
-                                                            coordinate.altitude = 6.180;
-                                                            console.log("Writting in Entry P shift=", x_shift*ratio_L,y_shift*ratio_B)
-                                                            _missionController.insertSimpleMissionItem(coordinate, nextIndex, true /* makeCurrentItem */);
-                                                            nextIndex = _missionController.currentPlanViewVIIndex + 1;
-                                                        }
-                                                       coordinate.latitude = cor_L[i].toFixed(6);
-                                                       coordinate.longitude = cor_B[i].toFixed(6);
-                                                       coordinate.altitude = 6.180+i;
-                                                       console.log("Coordinate Object upated as=",coordinate)
-                                                        _missionController.insertSimpleMissionItem(coordinate, nextIndex, true /* makeCurrentItem */);
-                                                        delay(5000,function(){
-                                                           // console.log("I'm printed after 2second,delay tiggered for step#!",i);
-
-                                                        }
-
-                                                        );
-
-                                                       //insertMmtekItemAfterCurrent(coordinate)
-
-
-                                                        }
-                                                    console.log("******Final Data Object of Coordinate=",coordinate);
-                                                   // _planMasterController.saveToSelectedFile();
-
-
-                                                 }
-                                onClicked: {
-                                    generatePath();
-//
-                                }
-                            }
-
-                         Repeater{
-                            model: _planMasterController.planCreators
-
-
-
-//                            Rectangle{
-
-//                              width:30
-//                              height:30
-//                              visible:index<2?true:false
-//                              color: "orange"
-//                              Text{
-//                                  text: index
+//                                    selectNextNotReady()
 //                              }
+//                            }
+//                            QGCButton {
+//                                //Layout.columnSpan:  3
 
+//                                Layout.fillWidth:   true
+
+//                                id:                             mavTestButton2
+//                                backRadius:                     height/4
+//                                text:                           qsTr("Generate")
+//                                //enabled:                        activeVehicle
+
+//                                //function insertMmtekItemAfterCurrent(coordinate) {
+//                                //    var nextIndex = _missionController.currentPlanViewVIIndex + 1
+//                                 //   _missionController.insertSimpleMissionItem(coordinate, nextIndex, true /* makeCurrentItem */)
+//                               // }
+
+////                                function Timer() {
+////                                    return Qt.createQmlObject("import QtQuick 2.0; Timer {}", root);
+////                                }
+//                                function delay(delayTime,cb) {
+//                                    timer.interval = delayTime;
+//                                    timer.repeat = false;
+//                                    timer.triggered.connect(cb)
+//                                    timer.start();
+
+//                                }
+
+//                                Timer {id: timer}
+
+
+////                                function setTimeout(callback,delayTime) {
+////                                   //timer = new Timer();
+////                                   timer.interval = delayTime;
+////                                   timer.repeat = false;
+////                                   timer.triggered.connect(callback);
+////                                   timer.start();
+////                                }
+
+////                                function task_Timer(i,coordinate,nextIndex){
+////                                   setTimeout(function(){
+////                                       _missionController.insertSimpleMissionItem(coordinate, nextIndex, true /* makeCurrentItem */);
+////                                       console.log("WritingTask Loop timer tigger: #",i);
+////                                   },3000);
+////                                }
+//                                function generatePath(){
+//                                                  var coordinate = editorMap.center
+//                                                  const  realR= parseFloat(protectTextField3.text);//inputed data
+//                                                  const   center_B= parseFloat(protectTextField0.text);//inputed data
+//                                                  const   center_H= parseFloat(protectTextField2.text);//inputed data
+//                                                  const   center_L= parseFloat(protectTextField1.text);//圆心的 经纬度BLH坐标
+//                                                  const ratio_B= (1.0/111122.19769899000); // 1meter=? degree in B ,纬度
+//                                                  const ratio_L= (1.0/96234.340763000);   //1meter=? degree in L,经度
+//                                                  const  start_theta=parseFloat(protectTextField4.text);
+//                                                  const  end_theta=parseFloat(protectTextField5.text);//起始和终点的圆心角 0---360度。
+
+//                                                    const start_x=realR*Math.cos((start_theta)*Math.PI/180.0);
+//                                                    const start_y=realR*Math.sin((start_theta)*Math.PI/180.0);//起始点的 xyz坐标系中初始化为 0,0,0
+//                                                    const start_B=center_B+(0.01)*ratio_B*realR*Math.sin((start_theta)*Math.PI/180.0);  //realR in CM unit.
+//                                                    const start_L=center_L+(0.01)*ratio_L*realR*Math.cos((start_theta)*Math.PI/180.0);//起始点的 xyz坐标系中初始化为 0,0,0
+//                                                    const cor_x=new Array(50).fill(0.0); const cor_B=new Array(50).fill(0.0);
+//                                                    const cor_y=new Array(50).fill(0.0); const cor_L=new Array(50).fill(0.0);
+
+//                                                    var x_shift=0.0; var y_shift=0.0;
+//                                                    const N1=Math.ceil((end_theta- start_theta)/5.0);//set to be 5 degree in angle.
+//                                                    const N2=Math.ceil((end_theta- start_theta)*Math.PI*2*realR/(360*20));//set to be 20cm
+//                                                    const N=20.0; //=Math.max(N1,N2);
+
+//                                                    const d_theta=(end_theta- start_theta)/N;
+//                                                    var points=N;
+
+//                                                    console.log("**Generating Arc Path......","N1=",N1,"N2=",N2,"N=",N,"D-theta=",d_theta)
+//                                                    console.log("**Lat=",center_B)
+//                                                    console.log("**Lon=",center_L)
+//                                                    console.log("**Height=",center_H)
+//                                                    console.log("**Radius=",realR)
+//                                                    console.log("**角度制starting from ",start_theta,"° To",end_theta,"°")
+//                                                    for(let i=0; i<=points;i++) {
+//                                                        var nextIndex = _missionController.currentPlanViewVIIndex + 1;
+//                                                        cor_x[i]= start_x+realR*(Math.cos((start_theta+i*d_theta)*Math.PI/180)-Math.cos(start_theta*Math.PI/180));
+//                                                        cor_y[i]= start_y-realR*(Math.sin(start_theta*Math.PI/180)-Math.sin((start_theta+i*d_theta)*Math.PI/180));
+//                                                        cor_B[i]=start_L+(0.01)*ratio_L*realR*(Math.cos((start_theta+i*d_theta)*Math.PI/180)-Math.cos(start_theta*Math.PI/180));
+//                                                        cor_L[i]=start_B-(0.01)*ratio_B*realR*(Math.sin(start_theta*Math.PI/180)-Math.sin((start_theta+i*d_theta)*Math.PI/180));
+//                                                        console.log("MainLoop#",i," point in XYZ cor:", cor_x[i].toFixed(3),cor_y[i].toFixed(3));
+//                                                        console.log("MainLoop#",i," waypoint in BLH cor: ",cor_L[i].toFixed(9),cor_B[i].toFixed(9));
+//                                                     //inster Prepare Entry point. and Setting up Prepare Entry Path Length
+//                                                     const entrylength=10.0; // Unit as in Meter
+
+//                                                        if(i==0){
+//                                                         x_shift=entrylength*Math.sin(start_theta*Math.PI/180);  //unit as in Meter
+//                                                         y_shift=-1.0*entrylength*Math.cos(start_theta*Math.PI/180);
+//                                                           coordinate.latitude = cor_L[i]+y_shift*ratio_B;
+//                                                            coordinate.longitude =cor_B[i]+x_shift*ratio_L;
+//                                                            coordinate.altitude = 6.180;
+//                                                            console.log("Writting in Entry P shift=", x_shift*ratio_L,y_shift*ratio_B)
+//                                                            _missionController.insertSimpleMissionItem(coordinate, nextIndex, true /* makeCurrentItem */);
+//                                                            nextIndex = _missionController.currentPlanViewVIIndex + 1;
+//                                                        }
+//                                                       coordinate.latitude = cor_L[i].toFixed(6);
+//                                                       coordinate.longitude = cor_B[i].toFixed(6);
+//                                                       coordinate.altitude = 6.180+i;
+//                                                       console.log("Coordinate Object upated as=",coordinate)
+//                                                        _missionController.insertSimpleMissionItem(coordinate, nextIndex, true /* makeCurrentItem */);
+//                                                        delay(5000,function(){
+//                                                           // console.log("I'm printed after 2second,delay tiggered for step#!",i);
+
+//                                                        }
+
+//                                                        );
+
+//                                                       //insertMmtekItemAfterCurrent(coordinate)
+
+
+//                                                        }
+//                                                    console.log("******Final Data Object of Coordinate=",coordinate);
+//                                                   // _planMasterController.saveToSelectedFile();
+
+
+//                                                 }
+//                                onClicked: {
+//                                    generatePath();
+////
+//                                }
+//                            }
+
+//                         Repeater{
+//                            model: _planMasterController.planCreators
+
+
+
+////                            Rectangle{
+
+////                              width:30
+////                              height:30
+////                              visible:index<2?true:false
+////                              color: "orange"
+////                              Text{
+////                                  text: index
+////                              }
+
+////                              }
+
+//                            QGCButton {
+
+//                                id:                             mavTestButton3
+//                               Layout.fillWidth:   true
+//                                backRadius:                     height/4
+//                                text:                           qsTr("Delete"+index)
+//                                visible:index<2?true:false
+//                                //enabled:                        activeVehicle
+//                                onClicked: {
+//                                    // simulate code to trigger the "Refresh" initialization for Creating a new Path , as copied as Line #1098.
+////                                    if (_planMasterController.containsItems) {
+//                                    createPlanRemoveAllPromptDialogMapCenter = _mapCenter()
+//                                    createPlanRemoveAllPromptDialogPlanCreator = object
+//                                    mainWindow.showComponentDialog(createPlanRemoveAllPromptDialog, qsTr("Create Plan"), mainWindow.showDialogDefaultWidth, StandardButton.Yes | StandardButton.No)
+////                                    }
+////                                    else {
+////                                        object.createPlan(_mapCenter())
+////                                    }
+//                                   // _planMasterController.removeAll()
+//                                   //dropPanel.hide()
+//                                   // as blow, old code for Upload path from a file,  temporarily frezzed.
+////                                    dropPanel.hide()
+////                                    if (_planMasterController.dirty) {
+////                                        mainWindow.showComponentDialog(syncLoadFromFileOverwrite, columnHolder._overwriteText, mainWindow.showDialogDefaultWidth, StandardButton.Yes | StandardButton.Cancel)
+////                                    } else {
+////                                        _planMasterController.loadFromSelectedFile()// target 2nd develop part.  Function to load Path from File.
+////                                    }
 //                              }
+//                                function _mapCenter() {
+//                                    var centerPoint = Qt.point(editorMap.centerViewport.left + (editorMap.centerViewport.width / 2), editorMap.centerViewport.top + (editorMap.centerViewport.height / 2))
+//                                    return editorMap.toCoordinate(centerPoint, false /* clipToViewPort */)
+//                               }
+//                              }
+//                             }// for Repeater
 
-                            QGCButton {
+//                           } // Button layout row setting
 
-                                id:                             mavTestButton3
-                               Layout.fillWidth:   true
-                                backRadius:                     height/4
-                                text:                           qsTr("Delete"+index)
-                                visible:index<2?true:false
-                                //enabled:                        activeVehicle
-                                onClicked: {
-                                    // simulate code to trigger the "Refresh" initialization for Creating a new Path , as copied as Line #1098.
-//                                    if (_planMasterController.containsItems) {
-                                    createPlanRemoveAllPromptDialogMapCenter = _mapCenter()
-                                    createPlanRemoveAllPromptDialogPlanCreator = object
-                                    mainWindow.showComponentDialog(createPlanRemoveAllPromptDialog, qsTr("Create Plan"), mainWindow.showDialogDefaultWidth, StandardButton.Yes | StandardButton.No)
-//                                    }
-//                                    else {
-//                                        object.createPlan(_mapCenter())
-//                                    }
-                                   // _planMasterController.removeAll()
-                                   //dropPanel.hide()
-                                   // as blow, old code for Upload path from a file,  temporarily frezzed.
-//                                    dropPanel.hide()
-//                                    if (_planMasterController.dirty) {
-//                                        mainWindow.showComponentDialog(syncLoadFromFileOverwrite, columnHolder._overwriteText, mainWindow.showDialogDefaultWidth, StandardButton.Yes | StandardButton.Cancel)
-//                                    } else {
-//                                        _planMasterController.loadFromSelectedFile()// target 2nd develop part.  Function to load Path from File.
-//                                    }
-                              }
-                                function _mapCenter() {
-                                    var centerPoint = Qt.point(editorMap.centerViewport.left + (editorMap.centerViewport.width / 2), editorMap.centerViewport.top + (editorMap.centerViewport.height / 2))
-                                    return editorMap.toCoordinate(centerPoint, false /* clipToViewPort */)
-                               }
-                              }
-                             }// for Repeater
-
-                           } // Button layout row setting
-
-                        }
+//                        }
 
 
-            }
+//            }
 
 
             SectionHeader {
@@ -1952,6 +1953,7 @@ Item {
     //update20221115 add the UI for TestFact data display of myVoltage
 
     GpsTest {
+        id: setGpsTest
         anchors.right:        parent.right
         //anchors.top:                parent.BottomLeft
         anchors.rightMargin:          200

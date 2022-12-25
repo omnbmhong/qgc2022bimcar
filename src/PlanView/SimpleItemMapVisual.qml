@@ -40,43 +40,43 @@ Item {
 
     //定义变量
 
-    property var    _circle
-    property bool   _circleShowing:   false
+//    property var    _circle
+//    property bool   _circleShowing:   false
 
-            function hideCircle() {
-                if (_circleShowing) {
-                    _circle.destroy()
-                    _circleShowing = false
-                }
-            }
+//            function hideCircle() {
+//                if (_circleShowing) {
+//                    _circle.destroy()
+//                    _circleShowing = false
+//                }
+//            }
 
 
     //显示半径圈
-            function showCircle() {
-                if (!_circleShowing) {
-                    _circle = circleComponent.createObject(map)
+//            function showCircle() {
+//                if (!_circleShowing) {
+//                    _circle = circleComponent.createObject(map)
                    // console.log('inMapVisual Newmap=:',map)
                     //map.addMapItem(_circle)
                     //_circleShowing = true
-                }
-            }
+//                }
+//            }
 
 //Updated 20221209 LEO
-                Component {
-                       id: circleComponent
+//                Component {
+//                       id: circleComponent
 
-                       MapCircle {
-                           color:          Qt.rgba(0,0,0,0)
-                           border.color:   "yellow"
-                           border.width:   6
-                           //center:         _missionController.splitSegment.coordinate1
-                           center:         _missionItem.coordinate
-                           radius:         200
-                           visible:        true
+//                       MapCircle {
+//                           color:          Qt.rgba(0,0,0,0)
+//                           border.color:   "yellow"
+//                           border.width:   6
+//                           //center:         _missionController.splitSegment.coordinate1
+//                           center:         _missionItem.coordinate
+//                           radius:         200
+//                           visible:        true
 
-                       }
+//                       }
 
-                   }
+//                   }
 
     function hideItemVisuals() {
         if (_itemVisualShowing) {
@@ -123,7 +123,7 @@ Item {
     Component.onCompleted: {
         showItemVisuals()
         updateDragArea()
-        showCircle()
+        //showCircle()
     }
 
     Component.onDestruction: {

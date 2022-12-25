@@ -142,14 +142,14 @@
     "shortDesc":        "Current voltage",
     "type":             "double",
     "decimalPlaces":    7,
-    "units":            "v"
+    "units":            "°度"
 },
 {
     "name":             "myLongitude",
     "shortDesc":        "Current Longitude",
     "type":             "double",
     "decimalPlaces":    7,
-    "units":            "dg"
+    "units":            "°度"
 }
 ]
 }
